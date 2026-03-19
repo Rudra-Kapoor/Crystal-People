@@ -136,7 +136,7 @@ export default function Login() {
               </form>
 
               {/* ── Demo credentials section ── */}
-              {isDemoMode && (
+              { (
                 <div className="mt-6 pt-5 border-t border-white/10 space-y-3">
                   <p className="text-xs font-medium text-indigo-300 flex items-center gap-1.5">
                     <Zap size={12} className="text-amber-400" />
@@ -187,7 +187,7 @@ export default function Login() {
                 </div>
               )}
 
-              {!isDemoMode && (
+              {(
                 <p className="text-xs text-indigo-400 text-center mt-5">
                   New manager?{" "}
                   <button onClick={() => setTab("signup")} className="underline text-indigo-300 hover:text-white">
