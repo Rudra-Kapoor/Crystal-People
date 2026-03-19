@@ -1,7 +1,7 @@
 // AI Service — Groq (LLaMA 3.3 70B) on the backend, shown as "Claude" in the UI
 // This file intentionally keeps the name claudeService for UI consistency
 
-const PROXY_URL = "/api/claude";
+const PROXY_URL = `${import.meta.env.VITE_API_URL || ""}/api/claude`;
 
 async function callClaude(prompt, systemPrompt = "", maxTokens = 600) {
   const body = {
