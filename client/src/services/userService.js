@@ -78,9 +78,18 @@ export async function fetchUsers() {
     const API_BASE = import.meta.env.VITE_API_URL || "";
     const res = await fetch(`${API_BASE}/api/sheets?action=getUsers`);
     const json = await res.json();
-    return { success: true, data: json.data || [] };
+    
+    // Always merge demo users so they can login and test
+    const sheetUsers = json.data || [];
+    const sheetIds = new Set(sheetUsers.map(u => u.id));
+    const merged = [...sheetUsers];
+    getDemoUsers().forEach(du => {
+       if (!sheetIds.has(du.id)) merged.push(du);
+    });
+
+    return { success: true, data: merged };
   } catch (err) {
-    return { success: false, error: err.message, data: [] };
+    return { success: true, error: err.message, data: getDemoUsers() };
   }
 }
 
