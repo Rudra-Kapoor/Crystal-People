@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
@@ -10,7 +12,7 @@ app.use(express.json({ limit: "10mb" }));
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const SHEETS_URL   = process.env.SHEETS_URL;
+const SHEETS_URL   = process.env.SHEETS_URL || process.env.VITE_SHEETS_API_URL;
 
 // ── AI proxy ─────────────────────────────────────────────────────
 app.post(["/api/claude", "/api/ai"], async (req, res) => {
@@ -91,6 +93,15 @@ app.post("/api/sheets", async (req, res) => {
 });
 
 app.get("/health", (_, res) => res.json({ status: "ok" }));
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Serve static frontend files in production
+app.use(express.static(path.join(__dirname, "client/dist")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client/dist/index.html"));
+});
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

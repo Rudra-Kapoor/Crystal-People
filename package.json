@@ -5,6 +5,7 @@
   "description": "Crystal Group — Employee Performance Management Tool",
   "scripts": {
     "dev": "concurrently \"node server.js\" \"npm run dev --prefix client\"",
+    "build": "npm install --prefix client && npm run build --prefix client",
     "install:all": "npm install && npm install --prefix client",
     "start": "node server.js"
   },
