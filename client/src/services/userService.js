@@ -75,7 +75,8 @@ export async function fetchUsers() {
     return { success: true, data: getDemoUsers() };
   }
   try {
-    const res = await fetch(`${BASE_URL}?action=getUsers`, { redirect: "follow" });
+    const API_BASE = import.meta.env.VITE_API_URL || "";
+    const res = await fetch(`${API_BASE}/api/sheets?action=getUsers`);
     const json = await res.json();
     return { success: true, data: json.data || [] };
   } catch (err) {
@@ -124,7 +125,8 @@ export async function signupManager({ name, email, password, department }) {
   }
 
   try {
-    const res = await fetch(BASE_URL, {
+    const API_BASE = import.meta.env.VITE_API_URL || "";
+    const res = await fetch(`${API_BASE}/api/sheets`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "addUser", user }),
@@ -166,7 +168,8 @@ export async function addEmployee({ name, email, password, department, managerId
   }
 
   try {
-    const res = await fetch(BASE_URL, {
+    const API_BASE = import.meta.env.VITE_API_URL || "";
+    const res = await fetch(`${API_BASE}/api/sheets`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "addUser", user }),
@@ -189,7 +192,8 @@ export async function deleteEmployee(userId) {
     return { success: true };
   }
   try {
-    const res = await fetch(BASE_URL, {
+        const API_BASE = import.meta.env.VITE_API_URL || "";
+    const res = await fetch(`${API_BASE}/api/sheets`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "deleteUser", userId }),

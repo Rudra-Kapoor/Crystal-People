@@ -10,8 +10,9 @@ app.use(express.json({ limit: "10mb" }));
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const SHEETS_URL   = process.env.SHEETS_URL;
 
-// Works on both /api/claude (old) and /api/ai (new) — so nothing breaks
+// ── AI proxy ─────────────────────────────────────────────────────
 app.post(["/api/claude", "/api/ai"], async (req, res) => {
   if (!GROQ_API_KEY) {
     return res.status(500).json({ error: "GROQ_API_KEY not set in .env" });
@@ -24,30 +25,24 @@ app.post(["/api/claude", "/api/ai"], async (req, res) => {
     if (system) groqMessages.push({ role: "system", content: system });
     if (messages) groqMessages.push(...messages);
 
-    const groqBody = {
-      model: "llama-3.3-70b-versatile",
-      max_tokens: max_tokens || 1000,
-      messages: groqMessages,
-    };
-
     const response = await fetch(GROQ_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${GROQ_API_KEY}`,
       },
-      body: JSON.stringify(groqBody),
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        max_tokens: max_tokens || 1000,
+        messages: groqMessages,
+      }),
     });
 
     const data = await response.json();
-
     if (!response.ok) {
-      return res
-        .status(response.status)
-        .json({ error: data.error?.message || "Groq API error" });
+      return res.status(response.status).json({ error: data.error?.message || "Groq error" });
     }
 
-    // Return in Claude-style format so frontend needs zero changes
     const text = data.choices?.[0]?.message?.content || "";
     res.json({ content: [{ type: "text", text }] });
   } catch (err) {
@@ -56,12 +51,50 @@ app.post(["/api/claude", "/api/ai"], async (req, res) => {
   }
 });
 
+// ── Sheets GET proxy ──────────────────────────────────────────────
+app.get("/api/sheets", async (req, res) => {
+  if (!SHEETS_URL) {
+    return res.status(500).json({ error: "SHEETS_URL not set" });
+  }
+  try {
+    const { default: fetch } = await import("node-fetch");
+    const params = new URLSearchParams(req.query).toString();
+    const url = `${SHEETS_URL}?${params}`;
+    const response = await fetch(url, { redirect: "follow" });
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error("Sheets GET error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Sheets POST proxy ─────────────────────────────────────────────
+app.post("/api/sheets", async (req, res) => {
+  if (!SHEETS_URL) {
+    return res.status(500).json({ error: "SHEETS_URL not set" });
+  }
+  try {
+    const { default: fetch } = await import("node-fetch");
+    const response = await fetch(SHEETS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(req.body),
+      redirect: "follow",
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error("Sheets POST error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get("/health", (_, res) => res.json({ status: "ok" }));
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`\n🚀 Crystal People API proxy running on http://localhost:${PORT}`);
-  console.log(
-    `   AI Engine: ${GROQ_API_KEY ? "✅ Groq key found" : "❌ Missing GROQ_API_KEY in .env"}`
-  );
+  console.log(`\n🚀 Crystal People API running on http://localhost:${PORT}`);
+  console.log(`   Groq:   ${GROQ_API_KEY ? "✅ Key found" : "❌ Missing GROQ_API_KEY"}`);
+  console.log(`   Sheets: ${SHEETS_URL   ? "✅ URL found" : "❌ Missing SHEETS_URL"}`);
 });
