@@ -86,21 +86,10 @@ export async function fetchAllReviews() {
   try {
     const res = await fetch(`${API_BASE}/api/sheets?action=getReviews`);
     const json = await res.json();
-    
-    // Always merge demo reviews
-    seedDemoData();
-    const sheetReviews = json.data || [];
-    const sheetIds = new Set(sheetReviews.map(r => r.id));
-    const merged = [...sheetReviews];
-    getDemoReviews().forEach(dr => {
-       if (!sheetIds.has(dr.id)) merged.push(dr);
-    });
-
-    return { success: true, data: merged };
+    return { success: true, data: json.data || [] };
   } catch (err) {
     console.error("Sheets fetch error:", err);
-    seedDemoData();
-    return { success: true, error: err.message, data: getDemoReviews() };
+    return { success: false, error: err.message, data: [] };
   }
 }
 
