@@ -1,24 +1,21 @@
 // All Sheets calls go through Render backend to avoid CORS issues
-
-const API_BASE = `${import.meta.env.VITE_API_URL || ""}`;
-const DEMO_MODE_KEY = "crystal_reviews_demo";
-
-// Demo mode when no API URL is set
+const API_BASE = import.meta.env.VITE_API_URL || "";
 export const isDemoMode = !import.meta.env.VITE_API_URL;
 
-// ── Demo seed data ────────────────────────────────────────────────
+const DEMO_KEY = "crystal_reviews_demo";
+
+// ── Demo helpers ─────────────────────────────────────────────────
 function getDemoReviews() {
-  try { return JSON.parse(localStorage.getItem(DEMO_MODE_KEY) || "[]"); }
+  try { return JSON.parse(localStorage.getItem(DEMO_KEY) || "[]"); }
   catch { return []; }
 }
 
 function saveDemoReviews(reviews) {
-  localStorage.setItem(DEMO_MODE_KEY, JSON.stringify(reviews));
+  localStorage.setItem(DEMO_KEY, JSON.stringify(reviews));
 }
 
 function seedDemoData() {
-  const existing = getDemoReviews();
-  if (existing.length > 0) return;
+  if (getDemoReviews().length > 0) return;
 
   const months = [
     { month: "October",  year: 2024 },
@@ -59,17 +56,17 @@ function seedDemoData() {
       const base = 3;
       reviews.push({
         id: `rev-demo-${String(idCount++).padStart(4, "0")}`,
-        employeeId:   emp.id,
-        employeeName: emp.name,
-        month:        m.month,
-        year:         m.year,
+        employeeId:    emp.id,
+        employeeName:  emp.name,
+        month:         m.month,
+        year:          m.year,
         outputQuality: Math.min(5, Math.max(1, base + Math.floor(Math.random() * 3) - 1)),
         attendance:    Math.min(5, Math.max(1, base + Math.floor(Math.random() * 3) - 1)),
         teamwork:      Math.min(5, Math.max(1, base + Math.floor(Math.random() * 3) - 1)),
-        comment:      comments[(idCount + idx) % comments.length],
-        managerId:    "mgr-001",
-        managerName:  "Sarah Mitchell",
-        timestamp:    new Date(m.year, idx, 15).toISOString(),
+        comment:       comments[(idCount + idx) % comments.length],
+        managerId:     "mgr-001",
+        managerName:   "Sarah Mitchell",
+        timestamp:     new Date(m.year, idx, 15).toISOString(),
       });
     });
   });
@@ -111,8 +108,8 @@ export async function submitReview(review) {
     const existing = getDemoReviews();
     const idx = existing.findIndex(
       (r) => r.employeeId === review.employeeId &&
-             r.month     === review.month &&
-             r.year      === review.year
+             r.month      === review.month &&
+             r.year       === review.year
     );
     if (idx >= 0) existing[idx] = newReview;
     else existing.push(newReview);
