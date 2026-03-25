@@ -106,13 +106,8 @@ export async function submitReview(review) {
 
   if (isDemoMode) {
     const existing = getDemoReviews();
-    const idx = existing.findIndex(
-      (r) => r.employeeId === review.employeeId &&
-             r.month      === review.month &&
-             r.year       === review.year
-    );
-    if (idx >= 0) existing[idx] = newReview;
-    else existing.push(newReview);
+    // Always append in Demo Mode to match Sheets behavior (keeps history)
+    existing.push(newReview);
     saveDemoReviews(existing);
     return { success: true, data: newReview };
   }
