@@ -85,10 +85,14 @@ app.post("/api/sheets", async (req, res) => {
       redirect: "follow",
     });
     const data = await response.json();
+    if (!response.ok) {
+      console.error("Sheets POST error response:", data);
+      return res.status(response.status).json({ success: false, error: data.error || "Sheets error" });
+    }
     res.json(data);
   } catch (err) {
-    console.error("Sheets POST error:", err);
-    res.status(500).json({ error: err.message });
+    console.error("Sheets POST exception:", err);
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

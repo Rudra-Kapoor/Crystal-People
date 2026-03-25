@@ -112,28 +112,11 @@ function doPost(e) {
     if (action === "submitReview") {
       const review = body.review;
       const sheet = getReviewSheet();
-      const data = sheet.getDataRange().getValues();
-      let updated = false;
-      if (data.length > 1) {
-        const empIdx   = REVIEW_COLUMNS.indexOf("employeeId");
-        const monthIdx = REVIEW_COLUMNS.indexOf("month");
-        const yearIdx  = REVIEW_COLUMNS.indexOf("year");
-        for (let i = 1; i < data.length; i++) {
-          if (
-            data[i][empIdx] === review.employeeId &&
-            data[i][monthIdx] === review.month &&
-            Number(data[i][yearIdx]) === Number(review.year)
-          ) {
-            sheet.getRange(i + 1, 1, 1, REVIEW_COLUMNS.length)
-              .setValues([REVIEW_COLUMNS.map((c) => review[c] ?? "")]);
-            updated = true;
-            break;
-          }
-        }
-      }
-      if (!updated) {
-        sheet.appendRow(REVIEW_COLUMNS.map((c) => review[c] ?? ""));
-      }
+      
+      // Always append a new row as a new record (keeps history)
+      // This fulfills the stakeholder requirement for "appears as a new row"
+      sheet.appendRow(REVIEW_COLUMNS.map((c) => review[c] ?? ""));
+      
       return jsonResponse({ success: true, data: review });
     }
 
